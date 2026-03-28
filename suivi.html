@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de ma commande - BOITIER TRUMA</title>
+    <style>
+        :root { --primary-color: #007bff; --bg-color: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        h2 { color: #333; margin-bottom: 20px; font-size: 1.2em; border-bottom: 2px solid var(--bg-color); padding-bottom: 15px; }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 18px; text-align: center; transition: border 0.3s; }
+        input:focus { border-color: var(--primary-color); outline: none; }
+        button { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,123,255,0.3); transition: transform 0.2s; }
+        button:hover { transform: translateY(-2px); }
+        #resultat { margin-top: 30px; text-align: left; display: none; animation: fadeIn 0.5s; }
+        .info-box { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 20px; }
+        .info-line { margin-bottom: 15px; }
+        .label { font-size: 0.7em; color: #999; text-transform: uppercase; font-weight: bold; }
+        .value { font-size: 1.1em; color: #333; margin-top: 3px; font-weight: 500; }
+        .status-badge { display: inline-block; padding: 5px 15px; background: #e7f3ff; color: var(--primary-color); border-radius: 20px; font-weight: bold; margin-top: 5px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #loader { display: none; margin-top: 15px; color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo">MON ENTREPRISE</div>
+    <h2>Suivi de votre dossier</h2>
+    
+    <p style="color: #666; font-size: 0.9em;">Saisissez votre numéro client (ex: CL-1) pour consulter l'avancement de votre commande en temps réel.</p>
+    
+    <input type="text" id="searchId" placeholder="Votre numéro de suivi">
+    <button onclick="rechercher()">Consulter le statut</button>
+    <div id="loader">Connexion sécurisée...</div>
+
+    <div id="resultat">
+        <div class="info-box">
+            <div class="info-line">
+                <div class="label">Client</div>
+                <div class="value" id="res-nom"></div>
+            </div>
+            <div class="info-line">
+                <div class="label">État de la commande</div>
+                <div class="status-badge" id="res-statut"></div>
+            </div>
+            <div class="info-line">
+                <div class="label">Transporteur</div>
+                <div class="value" id="res-transp"></div>
+            </div>
+            <div class="info-line">
+                <div class="label">Détails</div>
+                <div class="value" id="res-comm" style="font-size: 0.95em; color: #555;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="error-msg" style="color: #dc3545; text-align: center; margin-top: 15px; font-size: 0.9em;"></div>
+</div>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynglkA18JDsMI3kRzl8A5i0ZP17aKNcJwXWklatFZrMS4Ewi2JoKXfO9aZZPBkNOad4w/exec";
+
+    function rechercher() {
+        const searchVal = document.getElementById('searchId').value.trim().toUpperCase();
+        const resDiv = document.getElementById('resultat');
+        const errMsg = document.getElementById('error-msg');
+        const loader = document.getElementById('loader');
+        
+        if(!searchVal) return;
+
+        loader.style.display = "block";
+        resDiv.style.display = "none";
+        errMsg.innerText = "";
+
+        fetch(WEB_APP_URL)
+        .then(response => response.json())
+        .then(data => {
+            loader.style.display = "none";
+            const ligne = data.find(row => row.id && row.id.toString().toUpperCase() === searchVal);
+
+            if(ligne) {
+                document.getElementById('res-nom').innerText = ligne.client || "-";
+                document.getElementById('res-statut').innerText = ligne.statut || "En attente";
+                document.getElementById('res-transp').innerText = ligne.transporteur || "-";
+                document.getElementById('res-comm').innerText = ligne.statutTexte || "-";
+                resDiv.style.display = "block";
+            } else {
+                errMsg.innerText = "Désolé, ce numéro est introuvable.";
+            }
+        })
+        .catch(err => {
+            loader.style.display = "none";
+            errMsg.innerText = "Erreur réseau. Veuillez réessayer.";
+        });
+    }
+</script>
+
+</body>
+</html>
