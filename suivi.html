@@ -64,7 +64,6 @@
 </div>
 
 <script>
-    // URL de votre script Google (identique à l'admin)
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynglkA18JDsMI3kRzl8A5i0ZP17aKNcJwXWklatFZrMS4Ewi2JoKXfO9aZZPBkNOad4w/exec";
 
     function rechercher() {
@@ -86,15 +85,11 @@
         .then(response => response.json())
         .then(data => {
             loader.style.display = "none";
-            
-            // On cherche la ligne où "idclient" correspond à la saisie
-            // Note : le script Google transforme "ID Client" en "idclient"
             const ligne = data.find(row => 
                 row.idclient && row.idclient.toString().toUpperCase() === searchVal
             );
 
             if(ligne) {
-                // Remplissage avec les nouveaux noms de clés (nom, status, transporteur, statustexte)
                 document.getElementById('res-nom').innerText = ligne.nom || "-";
                 document.getElementById('res-date').innerText = ligne.date || "-";
                 document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
@@ -112,6 +107,5 @@
         });
     }
 </script>
-
 </body>
 </html>
