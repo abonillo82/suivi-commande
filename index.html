@@ -10,8 +10,9 @@
         .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
         .logo { font-size: 24px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
         h2 { color: #333; margin-bottom: 20px; font-size: 1.2em; border-bottom: 2px solid var(--bg-color); padding-bottom: 15px; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 18px; text-align: center; transition: border 0.3s; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 18px; text-align: center; transition: border 0.3s; }
         input:focus { border-color: var(--primary-color); outline: none; }
+        .help-text { font-size: 0.85em; color: #888; margin-bottom: 20px; font-style: italic; }
         button { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,123,255,0.3); transition: transform 0.2s; }
         button:hover { transform: translateY(-2px); }
         #resultat { margin-top: 30px; text-align: left; display: none; animation: fadeIn 0.5s; }
@@ -27,12 +28,14 @@
 <body>
 
 <div class="card">
-    <div class="logo">MON ENTREPRISE</div>
+    <div class="logo">BOITIER TRUMA</div>
     <h2>Suivi de votre dossier</h2>
     
-    <p style="color: #666; font-size: 0.9em;">Saisissez votre numéro client (ex: CL-1) pour consulter l'avancement de votre commande en temps réel.</p>
+    <p style="color: #666; font-size: 0.9em;">Consultez l'avancement de votre commande en temps réel.</p>
     
-    <input type="text" id="searchId" placeholder="Votre numéro de suivi">
+    <input type="text" id="searchId" placeholder="Votre code (ex: TR-XXXXX)">
+    <div class="help-text">Où trouver mon code ? Il vous a été envoyé par email lors de votre commande.</div>
+    
     <button onclick="rechercher()">Consulter le statut</button>
     <div id="loader">Connexion sécurisée...</div>
 
@@ -43,7 +46,11 @@
                 <div class="value" id="res-nom"></div>
             </div>
             <div class="info-line">
-                <div class="label">État de la commande</div>
+                <div class="label">Dernière mise à jour</div>
+                <div class="value" id="res-date"></div>
+            </div>
+            <div class="info-line">
+                <div class="label">État actuel</div>
                 <div class="status-badge" id="res-statut"></div>
             </div>
             <div class="info-line">
@@ -51,7 +58,7 @@
                 <div class="value" id="res-transp"></div>
             </div>
             <div class="info-line">
-                <div class="label">Détails</div>
+                <div class="label">Note de l'atelier</div>
                 <div class="value" id="res-comm" style="font-size: 0.95em; color: #555;"></div>
             </div>
         </div>
@@ -68,7 +75,10 @@
         const errMsg = document.getElementById('error-msg');
         const loader = document.getElementById('loader');
         
-        if(!searchVal) return;
+        if(!searchVal) {
+            errMsg.innerText = "Veuillez saisir votre code de suivi.";
+            return;
+        }
 
         loader.style.display = "block";
         resDiv.style.display = "none";
@@ -78,24 +88,27 @@
         .then(response => response.json())
         .then(data => {
             loader.style.display = "none";
-            const ligne = data.find(row => row.id && row.id.toString().toUpperCase() === searchVal);
+            const ligne = data.find(row => 
+                row.idclient && row.idclient.toString().toUpperCase() === searchVal
+            );
 
             if(ligne) {
-                document.getElementById('res-nom').innerText = ligne.client || "-";
-                document.getElementById('res-statut').innerText = ligne.statut || "En attente";
+                document.getElementById('res-nom').innerText = ligne.nom || "-";
+                document.getElementById('res-date').innerText = ligne.date || "-";
+                document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
                 document.getElementById('res-transp').innerText = ligne.transporteur || "-";
-                document.getElementById('res-comm').innerText = ligne.statutTexte || "-";
+                document.getElementById('res-comm').innerText = ligne.statustexte || "Aucun commentaire pour le moment.";
                 resDiv.style.display = "block";
             } else {
-                errMsg.innerText = "Désolé, ce numéro est introuvable.";
+                errMsg.innerText = "Code introuvable. Vérifiez l'orthographe ou contactez-nous.";
             }
         })
         .catch(err => {
             loader.style.display = "none";
-            errMsg.innerText = "Erreur réseau. Veuillez réessayer.";
+            errMsg.innerText = "Serveur indisponible. Réessayez dans quelques instants.";
+            console.error(err);
         });
     }
 </script>
-
 </body>
 </html>
