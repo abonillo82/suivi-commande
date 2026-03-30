@@ -34,7 +34,7 @@
     <p style="color: #666; font-size: 0.9em;">Consultez l'avancement de votre commande en temps réel.</p>
     
     <input type="text" id="searchId" placeholder="Votre code (ex: TR-XXXXX)">
-    <div class="help-text">Où trouver mon code ? Il vous a été envoyé par email lors de votre commande.</div>
+    <div class="help-text">Où trouver mon code ? Il vous a été envoyé par email.</div>
     
     <button onclick="rechercher()">Consulter le statut</button>
     <div id="loader">Connexion sécurisée...</div>
@@ -76,39 +76,3 @@
         const loader = document.getElementById('loader');
         
         if(!searchVal) {
-            errMsg.innerText = "Veuillez saisir votre code de suivi.";
-            return;
-        }
-
-        loader.style.display = "block";
-        resDiv.style.display = "none";
-        errMsg.innerText = "";
-
-        fetch(WEB_APP_URL)
-        .then(response => response.json())
-        .then(data => {
-            loader.style.display = "none";
-            const ligne = data.find(row => 
-                row.idclient && row.idclient.toString().toUpperCase() === searchVal
-            );
-
-            if(ligne) {
-                document.getElementById('res-nom').innerText = ligne.nom || "-";
-                document.getElementById('res-date').innerText = ligne.date || "-";
-                document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
-                document.getElementById('res-transp').innerText = ligne.transporteur || "-";
-                document.getElementById('res-comm').innerText = ligne.statustexte || "Aucun commentaire pour le moment.";
-                resDiv.style.display = "block";
-            } else {
-                errMsg.innerText = "Code introuvable. Vérifiez l'orthographe ou contactez-nous.";
-            }
-        })
-        .catch(err => {
-            loader.style.display = "none";
-            errMsg.innerText = "Serveur indisponible. Réessayez dans quelques instants.";
-            console.error(err);
-        });
-    }
-</script>
-</body>
-</html>
