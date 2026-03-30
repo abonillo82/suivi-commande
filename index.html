@@ -3,71 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi - BOITIER TRUMA</title>
+    <title>Suivi Commande - BOITIER TRUMA</title>
     <style>
-        :root { --primary-color: #007bff; --bg-color: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-        h2 { color: #333; border-bottom: 2px solid var(--bg-color); padding-bottom: 15px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; font-size: 18px; text-align: center; }
-        button { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        #resultat { margin-top: 30px; text-align: left; display: none; }
-        .info-box { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 20px; }
-        .status-badge { display: inline-block; padding: 5px 15px; background: #e7f3ff; color: var(--primary-color); border-radius: 20px; font-weight: bold; }
-        #loader { display: none; margin-top: 15px; color: #666; }
+        :root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: white; padding: 35px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        .brand { font-size: 26px; font-weight: 800; color: var(--primary); letter-spacing: 1px; margin-bottom: 5px; }
+        h2 { font-size: 1.1rem; color: #555; margin-bottom: 25px; font-weight: 400; }
+        
+        /* Input & Button */
+        .search-group { position: relative; margin-bottom: 20px; }
+        input { width: 100%; padding: 16px; border: 2px solid #eee; border-radius: 12px; font-size: 18px; text-align: center; box-sizing: border-box; transition: all 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 10px rgba(0,123,255,0.1); }
+        button { width: 100%; padding: 16px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,123,255,0.3); transition: transform 0.2s; }
+        button:hover { transform: translateY(-2px); }
+        
+        /* Progress Bar */
+        .stepper { display: flex; justify-content: space-between; margin: 30px 0; position: relative; display: none; }
+        .stepper::before { content: ""; position: absolute; top: 15px; left: 10%; right: 10%; height: 2px; background: #eee; z-index: 1; }
+        .step { position: relative; z-index: 2; background: white; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #ccc; font-weight: bold; }
+        .step.active { border-color: var(--primary); color: var(--primary); background: #e7f3ff; }
+        .step.done { border-color: var(--success); background: var(--success); color: white; }
+        .step-label { position: absolute; top: 35px; font-size: 10px; white-space: nowrap; color: #999; text-transform: uppercase; }
+
+        /* Result Box */
+        #resultat { margin-top: 25px; display: none; text-align: left; animation: slideUp 0.4s ease-out; }
+        .info-card { background: #fcfcfc; border: 1px solid #efefef; border-radius: 12px; padding: 20px; border-left: 4px solid var(--primary); }
+        .info-row { margin-bottom: 12px; }
+        .label { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+        .value { color: #333; font-weight: 500; }
+        .status-pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #e7f3ff; color: var(--primary); }
+        
+        #loader { display: none; margin: 15px 0; color: #007bff; font-weight: 500; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
 <div class="card">
-    <div style="font-size: 24px; font-weight: bold; color: #007bff; margin-bottom: 10px;">BOITIER TRUMA</div>
-    <h2>Suivi de dossier</h2>
-    <input type="text" id="searchId" placeholder="Ex: TR-VZFZ8">
-    <button onclick="rechercher()">Consulter le statut</button>
-    <div id="loader">Chargement...</div>
+    <div class="brand">BOITIER TRUMA</div>
+    <h2>Suivi de votre commande</h2>
+    
+    <div class="search-group">
+        <input type="text" id="searchId" placeholder="Votre code (ex: TR-XXXXX)">
+    </div>
+    <button onclick="rechercher()">Suivre mon colis</button>
+    <div id="loader">Recherche en cours...</div>
+
+    <div class="stepper" id="stepper">
+        <div class="step" id="step1">1<div class="step-label">Reçue</div></div>
+        <div class="step" id="step2">2<div class="step-label">Atelier</div></div>
+        <div class="step" id="step3">3<div class="step-label">Expédiée</div></div>
+    </div>
+
     <div id="resultat">
-        <div class="info-box">
-            <p><strong>Client:</strong> <span id="res-nom"></span></p>
-            <p><strong>Mise à jour:</strong> <span id="res-date"></span></p>
-            <p><strong>État:</strong> <span class="status-badge" id="res-statut"></span></p>
-            <p><strong>Détails:</strong> <span id="res-comm"></span></p>
+        <div class="info-card">
+            <div class="info-row">
+                <div class="label">Client</div>
+                <div class="value" id="res-nom"></div>
+            </div>
+            <div class="info-row">
+                <div class="label">Statut actuel</div>
+                <div class="status-pill" id="res-statut"></div>
+            </div>
+            <div class="info-row">
+                <div class="label">Note de l'équipe</div>
+                <div id="res-comm" style="font-size: 13px; color: #666; margin-top: 5px;"></div>
+            </div>
+            <div style="display:flex; justify-content: space-between; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
+                <div><div class="label">Date</div><div class="value" id="res-date" style="font-size: 13px;"></div></div>
+                <div style="text-align: right;"><div class="label">Transport</div><div class="value" id="res-transp" style="font-size: 13px;"></div></div>
+            </div>
         </div>
     </div>
-    <div id="error-msg" style="color: #dc3545; margin-top: 15px;"></div>
+    <div id="error-msg" style="color: #dc3545; font-size: 14px; margin-top: 15px;"></div>
 </div>
 
 <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbynglkA18JDsMI3kRzl8A5i0ZP17aKNcJwXWklatFZrMS4Ewi2JoKXfO9aZZPBkNOad4w/exec";
+
+    function updateStepper(status) {
+        const s = status.toLowerCase();
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        
+        // Reset
+        [step1, step2, step3].forEach(el => el.className = 'step');
+        document.getElementById('stepper').style.display = 'flex';
+
+        if (s.includes("attente") || s.includes("créée")) {
+            step1.classList.add('active');
+        } else if (s.includes("cours") || s.includes("atelier") || s.includes("renseignement")) {
+            step1.classList.add('done');
+            step2.classList.add('active');
+        } else if (s.includes("expédié") || s.includes("terminé") || s.includes("envoyé")) {
+            step1.classList.add('done');
+            step2.classList.add('done');
+            step3.classList.add('done');
+        }
+    }
+
     function rechercher() {
         const searchVal = document.getElementById('searchId').value.trim().toUpperCase();
         const resDiv = document.getElementById('resultat');
         const errMsg = document.getElementById('error-msg');
         const loader = document.getElementById('loader');
-        const url = "https://script.google.com/macros/s/AKfycbynglkA18JDsMI3kRzl8A5i0ZP17aKNcJwXWklatFZrMS4Ewi2JoKXfO9aZZPBkNOad4w/exec";
+        const stepper = document.getElementById('stepper');
 
         if(!searchVal) return;
 
         loader.style.display = "block";
         resDiv.style.display = "none";
+        stepper.style.display = "none";
         errMsg.innerText = "";
 
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                loader.style.display = "none";
-                const ligne = data.find(row => row.idclient && row.idclient.toString().toUpperCase() === searchVal);
-                if(ligne) {
-                    document.getElementById('res-nom').innerText = ligne.nom || "-";
-                    document.getElementById('res-date').innerText = (ligne.date || "-").split('T')[0];
-                    document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
-                    document.getElementById('res-comm').innerText = ligne.statustexte || "-";
-                    resDiv.style.display = "block";
-                } else {
-                    errMsg.innerText = "Code introuvable.";
-                }
-            })
-            .catch(err => {
-                loader.style.display = "none";
-                errMsg.innerText = "Erreur de connexion.";
-            });
+        fetch(WEB_APP_URL)
+        .then(res => res.json())
+        .then(data => {
+            loader.style.display = "none";
+            const ligne = data.find(row => row.idclient && row.idclient.toString().toUpperCase() === searchVal);
+
+            if(ligne) {
+                document.getElementById('res-nom').innerText = ligne.nom || "-";
+                document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
+                document.getElementById('res-comm').innerText = ligne.statustexte || "";
+                document.getElementById('res-date').innerText = (ligne.date || "").split('T')[0];
+                document.getElementById('res-transp').innerText = ligne.transporteur || "-";
+                
+                updateStepper(ligne.status || "");
+                resDiv.style.display = "block";
+            } else {
+                errMsg.innerText = "Désolé, ce code est introuvable.";
+            }
+        })
+        .catch(err => {
+            loader.style.display = "none";
+            errMsg.innerText = "Erreur de connexion. Veuillez réessayer.";
+        });
     }
 </script>
 </body>
