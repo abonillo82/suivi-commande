@@ -89,27 +89,19 @@
         .then(data => {
             loader.style.display = "none";
             
+            // Recherche du code client (idclient en minuscules comme dans vos données)
             const ligne = data.find(row => 
-                row.idClient && row.idClient.toString().toUpperCase() === searchVal
+                row.idclient && row.idclient.toString().toUpperCase() === searchVal
             );
 
             if(ligne) {
-                document.getElementById('res-nom').innerText = ligne.Nom || "-";
-                document.getElementById('res-date').innerText = ligne.Date || "-";
-                document.getElementById('res-statut').innerText = (ligne.Status || "En attente").toUpperCase();
-                document.getElementById('res-transp').innerText = ligne.Transporteur || "-";
-                document.getElementById('res-comm').innerText = ligne.StatusTexte || "Aucun commentaire pour le moment.";
-                resDiv.style.display = "block";
-            } else {
-                errMsg.innerText = "Code introuvable. Vérifiez l'orthographe ou contactez-nous.";
-            }
-        })
-        .catch(err => {
-            loader.style.display = "none";
-            errMsg.innerText = "Serveur indisponible. Réessayez dans quelques instants.";
-            console.error(err);
-        });
-    }
-</script>
-</body>
-</html>
+                // Affichage des données avec les clés minuscules envoyées par Google
+                document.getElementById('res-nom').innerText = ligne.nom || "-";
+                
+                // Formater la date (on enlève l'heure T23:00...)
+                let dateAffichee = ligne.date || "-";
+                if(dateAffichee.includes("T")) dateAffichee = dateAffichee.split("T")[0];
+                document.getElementById('res-date').innerText = dateAffichee;
+
+                document.getElementById('res-statut').innerText = (ligne.status || "En attente").toUpperCase();
+                document.getElementById('res-transp
